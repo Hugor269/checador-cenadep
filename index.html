@@ -1,0 +1,572 @@
+<title>Checador CENADEP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --surface-2: #eef1f6;
+    --border: #dbe0e8;
+    --text: #1b2433;
+    --muted: #64708a;
+    --accent: #2f5fe0;
+    --accent-dark: #1e42a8;
+    --accent-ink: #eef2ff;
+    --success: #1c8a53;
+    --success-ink: #e8f6ee;
+    --danger: #c8372f;
+    --danger-ink: #fdecea;
+    --focus: #2f5fe0;
+    --video-bg: #10182b;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1420;
+      --surface: #161d2e;
+      --surface-2: #1d2540;
+      --border: #2b3552;
+      --text: #e7ebf5;
+      --muted: #96a2c2;
+      --accent: #6f92ff;
+      --accent-dark: #4d6fe0;
+      --accent-ink: #1b2542;
+      --success: #4cca8b;
+      --success-ink: #123726;
+      --danger: #ff8a80;
+      --danger-ink: #3a1512;
+      --focus: #6f92ff;
+      --video-bg: #05070f;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0f1420;
+    --surface: #161d2e;
+    --surface-2: #1d2540;
+    --border: #2b3552;
+    --text: #e7ebf5;
+    --muted: #96a2c2;
+    --accent: #6f92ff;
+    --accent-dark: #4d6fe0;
+    --accent-ink: #1b2542;
+    --success: #4cca8b;
+    --success-ink: #123726;
+    --danger: #ff8a80;
+    --danger-ink: #3a1512;
+    --focus: #6f92ff;
+    --video-bg: #05070f;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { font-size: 18px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100dvh;
+    padding: clamp(16px, 5vw, 40px) 14px 40px;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  h1 {
+    font-family: "Manrope", system-ui, sans-serif;
+    font-size: clamp(1.7rem, 7vw, 2.1rem);
+    font-weight: 800;
+    margin: 4px 0 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .section-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Camera */
+  .cam-wrap {
+    position: relative;
+    background: var(--video-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  video, #preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: scaleX(-1);
+  }
+
+  #preview { display: none; transform: none; }
+
+  .cam-status {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    text-align: center;
+    color: #cfe0ff;
+    font-size: 0.85rem;
+    background: rgba(5, 8, 20, 0.55);
+  }
+
+  .cam-status.visible { display: flex; }
+
+  .retry-btn {
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  /* Choice groups */
+  .choice-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .choice-btn {
+    border: 1.5px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 16px 12px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+    line-height: 1.35;
+  }
+
+  .choice-btn.nombre { grid-column: span 1; font-size: 0.88rem; }
+
+  .choice-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-ink);
+    color: var(--accent-dark);
+  }
+
+  :root:not([data-theme="light"]) .choice-btn.selected { color: var(--accent); }
+  :root[data-theme="dark"] .choice-btn.selected { color: var(--accent); }
+
+  .choice-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  .tipo-row .choice-btn.salida.selected {
+    border-color: var(--danger);
+    background: var(--danger-ink);
+    color: var(--danger);
+  }
+
+  /* Location chip */
+  .loc-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 12px;
+    width: fit-content;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .loc-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted);
+    flex: none;
+  }
+  .loc-chip.ok .loc-dot { background: var(--success); }
+  .loc-chip.ok { color: var(--success); }
+  .loc-chip.err .loc-dot { background: var(--danger); }
+  .loc-chip.err { color: var(--danger); }
+  .loc-chip button {
+    margin-left: 2px;
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* Primary action */
+  .primary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-family: "Manrope", sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 18px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+  }
+  .primary-btn:hover:not(:disabled) { background: var(--accent-dark); }
+  .primary-btn:active:not(:disabled) { transform: scale(0.98); }
+  .primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .primary-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+  .secondary-btn {
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    font-family: "IBM Plex Sans", sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 14px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .action-row { display: flex; gap: 8px; }
+  .action-row .primary-btn, .action-row .secondary-btn { flex: 1; }
+
+  /* Feedback banner */
+  .banner {
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+  .banner.show { display: flex; }
+  .banner.success { background: var(--success-ink); color: var(--success); }
+  .banner.error { background: var(--danger-ink); color: var(--danger); }
+  .banner.loading { background: var(--surface-2); color: var(--muted); }
+
+  .banner strong { display: block; font-family: "Manrope", sans-serif; font-weight: 800; margin-bottom: 2px; }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.74rem;
+    padding-top: 4px;
+  }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 0.7s linear infinite;
+    flex: none;
+    margin-top: 2px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="page">
+  <div>
+    <div class="eyebrow">CENADEP · Control de asistencia</div>
+    <h1>Checador de Asistencia</h1>
+  </div>
+
+  <div class="card">
+    <div class="section-label">1. Quién eres</div>
+    <div class="choice-row" id="nombreRow">
+      <button type="button" class="choice-btn nombre" data-nombre="ITZAYANA DENNISE VITE ALCACENA">Itzayana Dennise Vite Alcacena</button>
+      <button type="button" class="choice-btn nombre" data-nombre="ARIZBETH SAYURI ALVAREZ ZAVALA">Arizbeth Sayuri Alvarez Zavala</button>
+    </div>
+
+    <div class="section-label">2. Tipo de registro</div>
+    <div class="choice-row tipo-row" id="tipoRow">
+      <button type="button" class="choice-btn" data-tipo="Entrada">Entrada</button>
+      <button type="button" class="choice-btn salida" data-tipo="Salida">Salida</button>
+    </div>
+
+    <div class="section-label">3. Foto</div>
+    <div class="cam-wrap">
+      <video id="video" autoplay playsinline muted></video>
+      <img id="preview" alt="Foto capturada">
+      <div class="cam-status" id="camStatus">
+        <span id="camStatusText">Pidiendo acceso a la cámara…</span>
+        <button type="button" class="retry-btn" id="btnReintentarCamara" style="display:none;">Reintentar acceso a la cámara</button>
+      </div>
+    </div>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <div class="loc-chip" id="locChip">
+      <span class="loc-dot"></span>
+      <span id="locText">Obteniendo ubicación…</span>
+    </div>
+
+    <div id="liveActions">
+      <button type="button" class="primary-btn" id="btnTomarFoto" disabled>Tomar foto</button>
+    </div>
+
+    <div id="previewActions" class="action-row" style="display:none;">
+      <button type="button" class="secondary-btn" id="btnRepetir">Repetir foto</button>
+      <button type="button" class="primary-btn" id="btnConfirmar">Confirmar registro</button>
+    </div>
+
+    <div class="banner" id="banner">
+      <div class="spinner" id="bannerSpinner" style="display:none;"></div>
+      <div>
+        <strong id="bannerTitle"></strong>
+        <span id="bannerText"></span>
+      </div>
+    </div>
+  </div>
+
+  <footer>CENADEP — ITZAYANA DENNISE VITE ALCACENA · ARIZBETH SAYURI ALVAREZ ZAVALA</footer>
+</div>
+
+<script>
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiya8eFpgaj3hOAXCVJPUBfyugefsUDLaYai9IUG8dFDLmsMg1qpykAFy6_4ZtS1ZE4Q/exec";
+
+  const video = document.getElementById('video');
+  const preview = document.getElementById('preview');
+  const canvas = document.getElementById('canvas');
+  const camStatus = document.getElementById('camStatus');
+  const camStatusText = document.getElementById('camStatusText');
+  const btnReintentarCamara = document.getElementById('btnReintentarCamara');
+  const nombreRow = document.getElementById('nombreRow');
+  const tipoRow = document.getElementById('tipoRow');
+  const btnTomarFoto = document.getElementById('btnTomarFoto');
+  const liveActions = document.getElementById('liveActions');
+  const previewActions = document.getElementById('previewActions');
+  const btnRepetir = document.getElementById('btnRepetir');
+  const btnConfirmar = document.getElementById('btnConfirmar');
+  const locChip = document.getElementById('locChip');
+  const locText = document.getElementById('locText');
+  const banner = document.getElementById('banner');
+  const bannerTitle = document.getElementById('bannerTitle');
+  const bannerText = document.getElementById('bannerText');
+  const bannerSpinner = document.getElementById('bannerSpinner');
+
+  let camaraLista = false;
+  let nombreSel = null;
+  let tipoSel = null;
+  let fotoDataUrl = null;
+  let lat = null, lng = null;
+
+  function actualizarBotonFoto() {
+    btnTomarFoto.disabled = !(camaraLista && nombreSel && tipoSel);
+  }
+
+  // ---- Selección de nombre / tipo ----
+  nombreRow.addEventListener('click', (e) => {
+    const btn = e.target.closest('.choice-btn');
+    if (!btn) return;
+    [...nombreRow.children].forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    nombreSel = btn.dataset.nombre;
+    actualizarBotonFoto();
+  });
+
+  tipoRow.addEventListener('click', (e) => {
+    const btn = e.target.closest('.choice-btn');
+    if (!btn) return;
+    [...tipoRow.children].forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    tipoSel = btn.dataset.tipo;
+    actualizarBotonFoto();
+  });
+
+  // ---- Cámara ----
+  function iniciarCamara() {
+    btnReintentarCamara.style.display = 'none';
+    camStatusText.textContent = 'Pidiendo acceso a la cámara…';
+    camStatus.classList.add('visible');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      .then(stream => {
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          video.play();
+          camaraLista = true;
+          camStatus.classList.remove('visible');
+          actualizarBotonFoto();
+        };
+      })
+      .catch(err => {
+        camaraLista = false;
+        camStatusText.textContent = 'No se pudo abrir la cámara: ' + err.name + '. Toca el botón para reintentar, o revisa que le hayas dado permiso de cámara a esta página.';
+        camStatus.classList.add('visible');
+        btnReintentarCamara.style.display = 'inline-block';
+        actualizarBotonFoto();
+      });
+  }
+  btnReintentarCamara.addEventListener('click', iniciarCamara);
+  iniciarCamara();
+
+  // ---- Ubicación ----
+  function pedirUbicacion() {
+    locChip.className = 'loc-chip';
+    locText.textContent = 'Obteniendo ubicación…';
+    if (!navigator.geolocation) {
+      locChip.className = 'loc-chip err';
+      locText.innerHTML = 'Este navegador no da ubicación. <button id="retryLoc">Reintentar</button>';
+      wireRetryLoc();
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+        locChip.className = 'loc-chip ok';
+        locText.textContent = 'Ubicación lista (' + lat.toFixed(4) + ', ' + lng.toFixed(4) + ')';
+      },
+      err => {
+        locChip.className = 'loc-chip err';
+        locText.innerHTML = 'No se pudo obtener ubicación. <button id="retryLoc">Reintentar</button>';
+        wireRetryLoc();
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  }
+  function wireRetryLoc() {
+    const b = document.getElementById('retryLoc');
+    if (b) b.addEventListener('click', pedirUbicacion);
+  }
+  pedirUbicacion();
+
+  // ---- Tomar foto ----
+  btnTomarFoto.addEventListener('click', () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+    fotoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    preview.src = fotoDataUrl;
+    preview.style.display = 'block';
+    video.style.display = 'none';
+    liveActions.style.display = 'none';
+    previewActions.style.display = 'flex';
+  });
+
+  btnRepetir.addEventListener('click', () => {
+    fotoDataUrl = null;
+    preview.style.display = 'none';
+    video.style.display = 'block';
+    liveActions.style.display = 'block';
+    previewActions.style.display = 'none';
+  });
+
+  function mostrarBanner(tipo, titulo, texto, spinner) {
+    banner.className = 'banner show ' + tipo;
+    bannerTitle.textContent = titulo;
+    bannerText.textContent = texto;
+    bannerSpinner.style.display = spinner ? 'block' : 'none';
+  }
+
+  btnConfirmar.addEventListener('click', async () => {
+    if (!fotoDataUrl || !nombreSel || !tipoSel) return;
+    btnConfirmar.disabled = true;
+    btnRepetir.disabled = true;
+    mostrarBanner('loading', 'Enviando…', 'Guardando tu registro, no cierres esta página.', true);
+
+    const payload = {
+      nombre: nombreSel,
+      tipo: tipoSel,
+      lat: lat !== null ? lat : 'No disponible',
+      lng: lng !== null ? lng : '',
+      imagen: fotoDataUrl
+    };
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok) {
+        mostrarBanner('success', '¡Listo!', data.mensaje || 'Registro guardado con éxito.', false);
+        setTimeout(reiniciarFormulario, 2200);
+      } else {
+        mostrarBanner('error', 'No se pudo guardar', data.mensaje || 'Ocurrió un error. Intenta de nuevo.', false);
+        btnConfirmar.disabled = false;
+        btnRepetir.disabled = false;
+      }
+    } catch (e) {
+      mostrarBanner('error', 'Sin conexión', 'No se pudo enviar el registro. Revisa tu internet e intenta de nuevo.', false);
+      btnConfirmar.disabled = false;
+      btnRepetir.disabled = false;
+    }
+  });
+
+  function reiniciarFormulario() {
+    fotoDataUrl = null;
+    nombreSel = null;
+    tipoSel = null;
+    [...nombreRow.children].forEach(b => b.classList.remove('selected'));
+    [...tipoRow.children].forEach(b => b.classList.remove('selected'));
+    preview.style.display = 'none';
+    video.style.display = 'block';
+    liveActions.style.display = 'block';
+    previewActions.style.display = 'none';
+    btnConfirmar.disabled = false;
+    btnRepetir.disabled = false;
+    banner.className = 'banner';
+    actualizarBotonFoto();
+  }
+</script>
